@@ -21,7 +21,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	infrav1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta1"
+	infrav1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta2"
 	"github.com/cluster-api-provider-k3s/cluster-api-k3s/pkg/secret"
 )
 

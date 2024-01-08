@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1beta1
+package v1beta2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,8 +56,9 @@ type KThreesControlPlaneTemplateResourceSpec struct {
 	RemediationStrategy *RemediationStrategy `json:"remediationStrategy,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 
 // KThreesControlPlaneTemplate is the Schema for the kthreescontrolplanetemplate API.
 type KThreesControlPlaneTemplate struct {
@@ -67,7 +68,7 @@ type KThreesControlPlaneTemplate struct {
 	Spec KThreesControlPlaneTemplateSpec `json:"spec,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // KThreesControlPlaneTemplateList contains a list of KThreesControlPlaneTemplate.
 type KThreesControlPlaneTemplateList struct {
