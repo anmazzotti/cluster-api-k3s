@@ -30,7 +30,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	bootstrapv1beta1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta1"
+	bootstrapv1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta2"
 	controlplanev1beta1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/controlplane/api/v1beta1"
+	controlplanev1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/controlplane/api/v1beta2"
 	"github.com/cluster-api-provider-k3s/cluster-api-k3s/controlplane/controllers"
 )
 
@@ -44,8 +46,10 @@ func init() {
 	_ = clusterv1beta1.AddToScheme(scheme)
 	_ = expv1beta1.AddToScheme(scheme)
 	_ = bootstrapv1beta1.AddToScheme(scheme)
+	_ = bootstrapv1.AddToScheme(scheme)
 
 	_ = controlplanev1beta1.AddToScheme(scheme)
+	_ = controlplanev1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
