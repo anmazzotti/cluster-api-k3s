@@ -54,7 +54,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 # Sync to controller-tools version in https://github.com/kubernetes-sigs/cluster-api/blob/v{VERSION}/hack/tools/go.mod
-CONTROLLER_GEN_VER := v0.12.1
+CONTROLLER_GEN_VER := v0.13.0
 CONTROLLER_GEN_BIN := controller-gen
 CONTROLLER_GEN := $(TOOLS_BIN_DIR)/$(CONTROLLER_GEN_BIN)-$(CONTROLLER_GEN_VER)
 
@@ -79,7 +79,7 @@ ENVSUBST_BIN := envsubst
 ENVSUBST := $(TOOLS_BIN_DIR)/$(ENVSUBST_BIN)
 
 # Bump as necessary/desired to latest that supports our version of go at https://github.com/golangci/golangci-lint/releases
-GOLANGCI_LINT_VER := v1.53.3
+GOLANGCI_LINT_VER := v1.55.2
 GOLANGCI_LINT_BIN := golangci-lint
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/$(GOLANGCI_LINT_BIN)-$(GOLANGCI_LINT_VER)
 
@@ -131,7 +131,7 @@ test-common:
 all-bootstrap: manager-bootstrap
 
 # Run tests
-test-bootstrap: envtest generate-bootstrap lint manifests-bootstrap
+test-bootstrap: envtest generate-bootstrap generate-bootstrap-conversions lint manifests-bootstrap
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(TOOLS_BIN_DIR) -p path)" go test $(shell pwd)/bootstrap/... -coverprofile cover.out
 
 # Build manager binary
@@ -157,7 +157,7 @@ deploy-bootstrap: manifests-bootstrap
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests-bootstrap: $(KUSTOMIZE) $(CONTROLLER_GEN)
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=bootstrap/config/crd/bases output:rbac:dir=bootstrap/config/rbac
+	$(CONTROLLER_GEN) paths=./bootstrap/... rbac:roleName=manager-role crd webhook output:crd:artifacts:config=bootstrap/config/crd/bases output:rbac:dir=bootstrap/config/rbac output:webhook:dir=bootstrap/config/webhook
 
 release-bootstrap:$(RELEASE_DIR) manifests-bootstrap ## Release bootstrap
 	cd bootstrap/config/manager && $(KUSTOMIZE) edit set image controller=${BOOTSTRAP_IMG}
@@ -213,7 +213,7 @@ deploy-controlplane: manifests-controlplane
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests-controlplane: $(KUSTOMIZE) $(CONTROLLER_GEN)
-	$(CONTROLLER_GEN) rbac:roleName=manager-role webhook crd paths="./..." output:crd:artifacts:config=controlplane/config/crd/bases output:rbac:dir=controlplane/config/rbac output:webhook:dir=controlplane/config/webhook
+	$(CONTROLLER_GEN) paths=./controlplane/... rbac:roleName=manager-role webhook crd output:crd:artifacts:config=controlplane/config/crd/bases output:rbac:dir=controlplane/config/rbac output:webhook:dir=controlplane/config/webhook
 
 release-controlplane: $(RELEASE_DIR) manifests-controlplane ## Release control-plane
 	cd controlplane/config/manager && $(KUSTOMIZE) edit set image controller=${CONTROLPLANE_IMG}
