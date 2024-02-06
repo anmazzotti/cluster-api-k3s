@@ -16,11 +16,14 @@ package v1beta1
 import (
 	"testing"
 
+	fuzz "github.com/google/gofuzz"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/apitesting/fuzzer"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilconversion "sigs.k8s.io/cluster-api/util/conversion"
 
+	bootstrapv1beta1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta1"
 	cabp3v1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/controlplane/api/v1beta2"
 )
 
@@ -34,6 +37,19 @@ func TestFuzzyConversion(t *testing.T) {
 		Scheme:      scheme,
 		Hub:         &cabp3v1.KThreesControlPlane{},
 		Spoke:       &KThreesControlPlane{},
-		FuzzerFuncs: []fuzzer.FuzzerFuncs{},
+		FuzzerFuncs: []fuzzer.FuzzerFuncs{KThreesServerConfigFuzzFunc},
 	}))
+}
+
+func KThreesServerConfigFuzzFunc(_ serializer.CodecFactory) []interface{} {
+	return []interface{}{
+		KThreesServerConfigFuzzer,
+	}
+}
+
+func KThreesServerConfigFuzzer(in *bootstrapv1beta1.KThreesServerConfig, c fuzz.Continue) {
+	c.FuzzNoCustom(in)
+
+	// This field have been removed in v1beta2, data is going to be lost.
+	in.DisableExternalCloudProvider = false
 }

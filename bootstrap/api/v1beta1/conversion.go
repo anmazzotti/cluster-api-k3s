@@ -16,13 +16,31 @@ package v1beta1
 import (
 	"fmt"
 
-	"sigs.k8s.io/controller-runtime/pkg/conversion"
+	"k8s.io/apimachinery/pkg/conversion"
+	ctrlconversion "sigs.k8s.io/controller-runtime/pkg/conversion"
 
 	cabp3v1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta2"
 )
 
+func Convert_v1beta1_KThreesServerConfig_To_v1beta2_KThreesServerConfig(in *KThreesServerConfig, out *cabp3v1.KThreesServerConfig, s conversion.Scope) error { //nolint: stylecheck
+	out.KubeAPIServerArgs = in.KubeAPIServerArgs
+	out.KubeControllerManagerArgs = in.KubeControllerManagerArgs
+	out.KubeSchedulerArgs = in.KubeSchedulerArgs
+	out.TLSSan = in.TLSSan
+	out.BindAddress = in.BindAddress
+	out.HTTPSListenPort = in.HTTPSListenPort
+	out.AdvertiseAddress = in.AdvertiseAddress
+	out.AdvertisePort = in.AdvertisePort
+	out.ClusterCidr = in.ClusterCidr
+	out.ServiceCidr = in.ServiceCidr
+	out.ClusterDNS = in.ClusterDNS
+	out.ClusterDomain = in.ClusterDomain
+	out.DisableComponents = in.DisableComponents
+	return nil
+}
+
 // ConvertTo converts the v1beta1 KThreesConfig receiver to a v1beta2 KThreesConfig.
-func (c *KThreesConfig) ConvertTo(dstRaw conversion.Hub) error {
+func (c *KThreesConfig) ConvertTo(dstRaw ctrlconversion.Hub) error {
 	dst := dstRaw.(*cabp3v1.KThreesConfig)
 	if err := autoConvert_v1beta1_KThreesConfig_To_v1beta2_KThreesConfig(c, dst, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfig v1beta1 to v1beta2: %w", err)
@@ -31,7 +49,7 @@ func (c *KThreesConfig) ConvertTo(dstRaw conversion.Hub) error {
 }
 
 // ConvertFrom converts the v1beta1 KThreesConfig receiver from a v1beta2 KThreesConfig.
-func (c *KThreesConfig) ConvertFrom(srcRaw conversion.Hub) error {
+func (c *KThreesConfig) ConvertFrom(srcRaw ctrlconversion.Hub) error {
 	src := srcRaw.(*cabp3v1.KThreesConfig)
 	if err := autoConvert_v1beta2_KThreesConfig_To_v1beta1_KThreesConfig(src, c, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfig v1beta1 from v1beta2: %w", err)
@@ -40,7 +58,7 @@ func (c *KThreesConfig) ConvertFrom(srcRaw conversion.Hub) error {
 }
 
 // ConvertTo converts the v1beta1 KThreesConfigList receiver to a v1beta2 KThreesConfigList.
-func (c *KThreesConfigList) ConvertTo(dstRaw conversion.Hub) error {
+func (c *KThreesConfigList) ConvertTo(dstRaw ctrlconversion.Hub) error {
 	dst := dstRaw.(*cabp3v1.KThreesConfigList)
 	if err := autoConvert_v1beta1_KThreesConfigList_To_v1beta2_KThreesConfigList(c, dst, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfigList v1beta1 to v1beta2: %w", err)
@@ -49,7 +67,7 @@ func (c *KThreesConfigList) ConvertTo(dstRaw conversion.Hub) error {
 }
 
 // ConvertFrom converts the v1beta1 KThreesConfigList receiver from a v1beta2 KThreesConfigList.
-func (c *KThreesConfigList) ConvertFrom(srcRaw conversion.Hub) error {
+func (c *KThreesConfigList) ConvertFrom(srcRaw ctrlconversion.Hub) error {
 	src := srcRaw.(*cabp3v1.KThreesConfigList)
 	if err := autoConvert_v1beta2_KThreesConfigList_To_v1beta1_KThreesConfigList(src, c, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfigList v1beta1 from v1beta2: %w", err)
@@ -58,7 +76,7 @@ func (c *KThreesConfigList) ConvertFrom(srcRaw conversion.Hub) error {
 }
 
 // ConvertTo converts the v1beta1 KThreesConfigTemplate receiver to a v1beta2 KThreesConfigTemplate.
-func (r *KThreesConfigTemplate) ConvertTo(dstRaw conversion.Hub) error {
+func (r *KThreesConfigTemplate) ConvertTo(dstRaw ctrlconversion.Hub) error {
 	dst := dstRaw.(*cabp3v1.KThreesConfigTemplate)
 	if err := autoConvert_v1beta1_KThreesConfigTemplate_To_v1beta2_KThreesConfigTemplate(r, dst, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfigTemplate v1beta1 to v1beta2: %w", err)
@@ -67,7 +85,7 @@ func (r *KThreesConfigTemplate) ConvertTo(dstRaw conversion.Hub) error {
 }
 
 // ConvertFrom converts the v1beta1 KThreesConfigTemplate receiver from a v1beta2 KThreesConfigTemplate.
-func (r *KThreesConfigTemplate) ConvertFrom(srcRaw conversion.Hub) error {
+func (r *KThreesConfigTemplate) ConvertFrom(srcRaw ctrlconversion.Hub) error {
 	src := srcRaw.(*cabp3v1.KThreesConfigTemplate)
 	if err := autoConvert_v1beta2_KThreesConfigTemplate_To_v1beta1_KThreesConfigTemplate(src, r, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfigTemplate v1beta1 from v1beta2: %w", err)
@@ -76,7 +94,7 @@ func (r *KThreesConfigTemplate) ConvertFrom(srcRaw conversion.Hub) error {
 }
 
 // ConvertTo converts the v1beta1 KThreesConfigTemplateList receiver to a v1beta2 KThreesConfigTemplateList.
-func (r *KThreesConfigTemplateList) ConvertTo(dstRaw conversion.Hub) error {
+func (r *KThreesConfigTemplateList) ConvertTo(dstRaw ctrlconversion.Hub) error {
 	dst := dstRaw.(*cabp3v1.KThreesConfigTemplateList)
 	if err := autoConvert_v1beta1_KThreesConfigTemplateList_To_v1beta2_KThreesConfigTemplateList(r, dst, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfigTemplateList v1beta1 to v1beta2: %w", err)
@@ -85,7 +103,7 @@ func (r *KThreesConfigTemplateList) ConvertTo(dstRaw conversion.Hub) error {
 }
 
 // ConvertFrom converts the v1beta1 KThreesConfigTemplateList receiver from a v1beta2 KThreesConfigTemplateList.
-func (r *KThreesConfigTemplateList) ConvertFrom(srcRaw conversion.Hub) error {
+func (r *KThreesConfigTemplateList) ConvertFrom(srcRaw ctrlconversion.Hub) error {
 	src := srcRaw.(*cabp3v1.KThreesConfigTemplateList)
 	if err := autoConvert_v1beta2_KThreesConfigTemplateList_To_v1beta1_KThreesConfigTemplateList(src, r, nil); err != nil {
 		return fmt.Errorf("converting KThreesConfigTemplateList v1beta1 from v1beta2: %w", err)

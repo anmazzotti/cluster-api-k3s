@@ -14,6 +14,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"errors"
 	"fmt"
 	unsafe "unsafe"
 
@@ -24,6 +25,8 @@ import (
 	bootstrapv1beta2 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta2"
 	cabp3v1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/controlplane/api/v1beta2"
 )
+
+var ErrConversionDataNotFound = errors.New("could not find annotated conversion data")
 
 func Convert_v1beta1_KThreesControlPlaneSpec_To_v1beta2_KThreesControlPlaneSpec(in *KThreesControlPlaneSpec, out *cabp3v1.KThreesControlPlaneSpec, s conversion.Scope) error { //nolint: stylecheck
 	out.Replicas = in.Replicas

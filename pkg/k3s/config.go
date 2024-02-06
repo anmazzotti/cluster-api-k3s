@@ -7,7 +7,13 @@ import (
 	bootstrapv1 "github.com/cluster-api-provider-k3s/cluster-api-k3s/bootstrap/api/v1beta2"
 )
 
-const DefaultK3sConfigLocation = "/etc/rancher/k3s/config.yaml"
+const (
+	DefaultK3sConfigLocation = "/etc/rancher/k3s/config.yaml"
+
+	// kubeletArgCloudProviderExternal always needs to be used to prevent
+	// k3s from automatically setting the node.spec.providerID.
+	kubeletArgCloudProviderExternal = "cloud-provider=external"
+)
 
 type K3sServerConfig struct {
 	DisableCloudController    bool     `json:"disable-cloud-controller,omitempty"`
@@ -40,13 +46,12 @@ type K3sAgentConfig struct {
 }
 
 func GenerateInitControlPlaneConfig(controlPlaneEndpoint string, token string, serverConfig bootstrapv1.KThreesServerConfig, agentConfig bootstrapv1.KThreesAgentConfig) K3sServerConfig {
-	kubeletExtraArgs := getKubeletExtraArgs(serverConfig)
 	k3sServerConfig := K3sServerConfig{
-		DisableCloudController:    !serverConfig.DisableExternalCloudProvider,
+		DisableCloudController:    true,
 		ClusterInit:               true,
 		KubeAPIServerArgs:         append(serverConfig.KubeAPIServerArgs, "anonymous-auth=true", getTLSCipherSuiteArg()),
 		TLSSan:                    append(serverConfig.TLSSan, controlPlaneEndpoint),
-		KubeControllerManagerArgs: append(serverConfig.KubeControllerManagerArgs, kubeletExtraArgs...),
+		KubeControllerManagerArgs: serverConfig.KubeControllerManagerArgs,
 		KubeSchedulerArgs:         serverConfig.KubeSchedulerArgs,
 		BindAddress:               serverConfig.BindAddress,
 		HTTPSListenPort:           serverConfig.HTTPSListenPort,
@@ -61,7 +66,7 @@ func GenerateInitControlPlaneConfig(controlPlaneEndpoint string, token string, s
 
 	k3sServerConfig.K3sAgentConfig = K3sAgentConfig{
 		Token:           token,
-		KubeletArgs:     append(agentConfig.KubeletArgs, kubeletExtraArgs...),
+		KubeletArgs:     append(agentConfig.KubeletArgs, kubeletArgCloudProviderExternal),
 		NodeLabels:      agentConfig.NodeLabels,
 		NodeTaints:      agentConfig.NodeTaints,
 		PrivateRegistry: agentConfig.PrivateRegistry,
@@ -73,12 +78,11 @@ func GenerateInitControlPlaneConfig(controlPlaneEndpoint string, token string, s
 }
 
 func GenerateJoinControlPlaneConfig(serverURL string, token string, controlplaneendpoint string, serverConfig bootstrapv1.KThreesServerConfig, agentConfig bootstrapv1.KThreesAgentConfig) K3sServerConfig {
-	kubeletExtraArgs := getKubeletExtraArgs(serverConfig)
 	k3sServerConfig := K3sServerConfig{
-		DisableCloudController:    !serverConfig.DisableExternalCloudProvider,
+		DisableCloudController:    true,
 		KubeAPIServerArgs:         append(serverConfig.KubeAPIServerArgs, "anonymous-auth=true", getTLSCipherSuiteArg()),
 		TLSSan:                    append(serverConfig.TLSSan, controlplaneendpoint),
-		KubeControllerManagerArgs: append(serverConfig.KubeControllerManagerArgs, kubeletExtraArgs...),
+		KubeControllerManagerArgs: serverConfig.KubeControllerManagerArgs,
 		KubeSchedulerArgs:         serverConfig.KubeSchedulerArgs,
 		BindAddress:               serverConfig.BindAddress,
 		HTTPSListenPort:           serverConfig.HTTPSListenPort,
@@ -94,7 +98,7 @@ func GenerateJoinControlPlaneConfig(serverURL string, token string, controlplane
 	k3sServerConfig.K3sAgentConfig = K3sAgentConfig{
 		Token:           token,
 		Server:          serverURL,
-		KubeletArgs:     append(agentConfig.KubeletArgs, kubeletExtraArgs...),
+		KubeletArgs:     append(agentConfig.KubeletArgs, kubeletArgCloudProviderExternal),
 		NodeLabels:      agentConfig.NodeLabels,
 		NodeTaints:      agentConfig.NodeTaints,
 		PrivateRegistry: agentConfig.PrivateRegistry,
@@ -106,11 +110,10 @@ func GenerateJoinControlPlaneConfig(serverURL string, token string, controlplane
 }
 
 func GenerateWorkerConfig(serverURL string, token string, serverConfig bootstrapv1.KThreesServerConfig, agentConfig bootstrapv1.KThreesAgentConfig) K3sAgentConfig {
-	kubeletExtraArgs := getKubeletExtraArgs(serverConfig)
 	return K3sAgentConfig{
 		Server:          serverURL,
 		Token:           token,
-		KubeletArgs:     append(agentConfig.KubeletArgs, kubeletExtraArgs...),
+		KubeletArgs:     append(agentConfig.KubeletArgs, kubeletArgCloudProviderExternal),
 		NodeLabels:      agentConfig.NodeLabels,
 		NodeTaints:      agentConfig.NodeTaints,
 		PrivateRegistry: agentConfig.PrivateRegistry,
@@ -154,12 +157,4 @@ func getTLSCipherSuiteArg() string {
 	ciphersList = strings.TrimRight(ciphersList, ",")
 
 	return fmt.Sprintf("tls-cipher-suites=%s", ciphersList)
-}
-
-func getKubeletExtraArgs(serverConfig bootstrapv1.KThreesServerConfig) []string {
-	kubeletExtraArgs := []string{}
-	if !serverConfig.DisableExternalCloudProvider {
-		kubeletExtraArgs = append(kubeletExtraArgs, "cloud-provider=external")
-	}
-	return kubeletExtraArgs
 }

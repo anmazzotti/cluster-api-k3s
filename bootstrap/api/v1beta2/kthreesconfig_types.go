@@ -109,10 +109,6 @@ type KThreesServerConfig struct {
 	// DisableComponents  specifies extra commands to run before k3s setup runs
 	// +optional
 	DisableComponents []string `json:"disableComponents,omitempty"`
-
-	// DisableExternalCloudProvider suppresses the 'cloud-provider=external' kubelet argument. (default: false)
-	// +optional
-	DisableExternalCloudProvider bool `json:"disableExternalCloudProvider,omitempty"`
 }
 
 type KThreesAgentConfig struct {
