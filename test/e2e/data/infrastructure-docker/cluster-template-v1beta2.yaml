@@ -1,0 +1,107 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster 
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 10.45.0.0/16
+    services:
+      cidrBlocks:
+      - 10.46.0.0/16
+    serviceDomain: cluster.local
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+    kind: KThreesControlPlane
+    name: ${CLUSTER_NAME}-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: DockerCluster
+    name: ${CLUSTER_NAME}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DockerCluster
+metadata:
+  name: ${CLUSTER_NAME}
+spec: {}
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+kind: KThreesControlPlane
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+  namespace: ${NAMESPACE}
+spec:
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerMachineTemplate
+      name: ${CLUSTER_NAME}-control-plane
+  version: ${KUBERNETES_VERSION}
+  kthreesConfigSpec:
+    serverConfig:
+      tlsSan:
+        - 0.0.0.0
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DockerMachineTemplate
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+  namespace: ${NAMESPACE}
+spec:
+  template:
+    spec:
+      customImage: kindest/node:${KIND_IMAGE_VERSION}
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: worker-md-0
+  namespace: ${NAMESPACE}
+spec:
+  clusterName: ${CLUSTER_NAME}
+  replicas: ${WORKER_MACHINE_COUNT}
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+
+      # This label will be needed for upgrade test
+      # it will be used as a selector for only selecting
+      # machines belonging to this machine deployment
+      cluster.x-k8s.io/deployment-name: worker-md-0
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/deployment-name: worker-md-0
+    spec:
+      version: ${KUBERNETES_VERSION}
+      clusterName: ${CLUSTER_NAME}
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
+          kind: KThreesConfigTemplate
+          name: ${CLUSTER_NAME}-md-0
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: DockerMachineTemplate
+        name: ${CLUSTER_NAME}-md-0
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: DockerMachineTemplate
+metadata:
+  name: ${CLUSTER_NAME}-md-0
+  namespace: ${NAMESPACE}
+spec:
+  template:
+    spec:
+      customImage: kindest/node:${KIND_IMAGE_VERSION}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
+kind: KThreesConfigTemplate
+metadata:
+  name: ${CLUSTER_NAME}-md-0
+  namespace: ${NAMESPACE}
+spec:
+  template:
+    spec: {}

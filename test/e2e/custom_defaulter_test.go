@@ -34,10 +34,10 @@ import (
 	"sigs.k8s.io/cluster-api/util"
 )
 
-var _ = Describe("Workload cluster creation", func() {
+var _ = Describe("Custom Defaulter", func() {
 	var (
 		ctx                    = context.TODO()
-		specName               = "workload-cluster-creation"
+		specName               = "custom-defaulter"
 		namespace              *corev1.Namespace
 		cancelWatches          context.CancelFunc
 		result                 *ApplyClusterTemplateAndWaitResult
@@ -49,7 +49,7 @@ var _ = Describe("Workload cluster creation", func() {
 	BeforeEach(func() {
 		Expect(e2eConfig.Variables).To(HaveKey(KubernetesVersion))
 
-		clusterName = fmt.Sprintf("capik3s-create-%s", util.RandomString(6))
+		clusterName = fmt.Sprintf("capik3s-custom-defaulter-%s", util.RandomString(6))
 		infrastructureProvider = "docker"
 
 		// Setup a Namespace where to host objects for this spec and create a watcher for the namespace events.
@@ -76,27 +76,7 @@ var _ = Describe("Workload cluster creation", func() {
 	})
 
 	Context("Creating a cluster", func() {
-		It("Should create a workload cluster with 1 control plane and 3 worker nodes [PR-Blocking]", func() {
-			By("Creating a workload cluster")
-			ApplyClusterTemplateAndWait(ctx, ApplyClusterTemplateAndWaitInput{
-				ClusterProxy: bootstrapClusterProxy,
-				ConfigCluster: clusterctl.ConfigClusterInput{
-					LogFolder:                clusterctlLogFolder,
-					ClusterctlConfigPath:     clusterctlConfigPath,
-					KubeconfigPath:           bootstrapClusterProxy.GetKubeconfigPath(),
-					InfrastructureProvider:   infrastructureProvider,
-					Namespace:                namespace.Name,
-					ClusterName:              clusterName,
-					KubernetesVersion:        e2eConfig.GetVariable(KubernetesVersion),
-					ControlPlaneMachineCount: pointer.Int64Ptr(1),
-					WorkerMachineCount:       pointer.Int64Ptr(3),
-				},
-				WaitForClusterIntervals:      e2eConfig.GetIntervals(specName, "wait-cluster"),
-				WaitForControlPlaneIntervals: e2eConfig.GetIntervals(specName, "wait-control-plane"),
-				WaitForMachineDeployments:    e2eConfig.GetIntervals(specName, "wait-worker-nodes"),
-			}, result)
-		})
-		It("Should create a workload cluster with 1 control plane and 3 worker nodes using v1beta2 API [PR-Blocking]", func() {
+		It("Should create a workload cluster with default values [TESTY-TEST]", func() {
 			By("Creating a workload cluster")
 			ApplyClusterTemplateAndWait(ctx, ApplyClusterTemplateAndWaitInput{
 				ClusterProxy: bootstrapClusterProxy,
@@ -110,12 +90,22 @@ var _ = Describe("Workload cluster creation", func() {
 					ClusterName:              clusterName,
 					KubernetesVersion:        e2eConfig.GetVariable(KubernetesVersion),
 					ControlPlaneMachineCount: pointer.Int64Ptr(1),
-					WorkerMachineCount:       pointer.Int64Ptr(3),
+					WorkerMachineCount:       pointer.Int64Ptr(1),
 				},
 				WaitForClusterIntervals:      e2eConfig.GetIntervals(specName, "wait-cluster"),
 				WaitForControlPlaneIntervals: e2eConfig.GetIntervals(specName, "wait-control-plane"),
 				WaitForMachineDeployments:    e2eConfig.GetIntervals(specName, "wait-worker-nodes"),
 			}, result)
+
+			// Expect control plane default values
+			Expect(*result.ControlPlane.Spec.KThreesConfigSpec.ServerConfig.DisableCloudController).Should(Equal(true))
+			Expect(*result.ControlPlane.Spec.KThreesConfigSpec.ServerConfig.CloudProviderName).Should(Equal("external"))
+			// Expect bootstrap default values
+			Expect(result.BootstrapConfigs.Items).Should(HaveLen(2))
+			Expect(*result.BootstrapConfigs.Items[0].Spec.ServerConfig.DisableCloudController).Should(Equal(true))
+			Expect(*result.BootstrapConfigs.Items[0].Spec.ServerConfig.CloudProviderName).Should(Equal("external"))
+			Expect(*result.BootstrapConfigs.Items[1].Spec.ServerConfig.DisableCloudController).Should(Equal(true))
+			Expect(*result.BootstrapConfigs.Items[1].Spec.ServerConfig.CloudProviderName).Should(Equal("external"))
 		})
 	})
 })

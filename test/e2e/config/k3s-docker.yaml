@@ -54,6 +54,7 @@ providers:
       - sourcePath: "../data/infrastructure-docker/cluster-template.yaml"
       - sourcePath: "../data/infrastructure-docker/cluster-template-kcp-remediation.yaml"
       - sourcePath: "../data/infrastructure-docker/cluster-template-md-remediation.yaml"
+      - sourcePath: "../data/infrastructure-docker/cluster-template-v1beta2.yaml"
   - name: k3s
     type: BootstrapProvider
     versions:

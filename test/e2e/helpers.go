@@ -34,7 +34,8 @@ import (
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	controlplanev1 "github.com/k3s-io/cluster-api-k3s/controlplane/api/v1beta1"
+	bootstrapv1 "github.com/k3s-io/cluster-api-k3s/bootstrap/api/v1beta2"
+	controlplanev1 "github.com/k3s-io/cluster-api-k3s/controlplane/api/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
@@ -81,6 +82,7 @@ type ApplyClusterTemplateAndWaitResult struct {
 	ClusterClass       *clusterv1.ClusterClass
 	Cluster            *clusterv1.Cluster
 	ControlPlane       *controlplanev1.KThreesControlPlane
+	BootstrapConfigs   *bootstrapv1.KThreesConfigList
 	MachineDeployments []*clusterv1.MachineDeployment
 	MachinePools       []*expv1.MachinePool
 }
@@ -198,6 +200,7 @@ type ApplyCustomClusterTemplateAndWaitResult struct {
 	ClusterClass       *clusterv1.ClusterClass
 	Cluster            *clusterv1.Cluster
 	ControlPlane       *controlplanev1.KThreesControlPlane
+	BootstrapConfigs   *bootstrapv1.KThreesConfigList
 	MachineDeployments []*clusterv1.MachineDeployment
 	MachinePools       []*expv1.MachinePool
 }
@@ -278,10 +281,15 @@ func ApplyCustomClusterTemplateAndWait(ctx context.Context, input ApplyCustomClu
 		Cluster: result.Cluster,
 	}, input.WaitForMachinePools...)
 
+	By("Fetching KThreesConfigs if any")
+	result.BootstrapConfigs = &bootstrapv1.KThreesConfigList{}
+	input.ClusterProxy.GetClient().List(ctx, result.BootstrapConfigs)
+
 	if input.PostMachinesProvisioned != nil {
 		Byf("Calling PostMachinesProvisioned for cluster %s", klog.KRef(input.Namespace, input.ClusterName))
 		input.PostMachinesProvisioned()
 	}
+
 }
 
 // setDefaults sets the default values for ApplyCustomClusterTemplateAndWaitInput if not set.
